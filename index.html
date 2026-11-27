@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -1482,6 +1483,60 @@
       gap: 10px;
     }
 
+    .security-divider {
+      margin: 18px 0 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .security-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .e2ee-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .msg-enc-tag {
+      display: inline-flex;
+      align-items: center;
+      color: var(--accent);
+      opacity: 0.85;
+      margin-right: 2px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-row input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
     /* Modal Pratinjau Kirim Foto */
     .img-send-card {
       background: var(--bg-panel);
@@ -1698,7 +1753,7 @@
       </div>
 
       <div class="auth-footer-note">
-        <span>GitHub Pages + GAS • v3.0</span>
+        <span>GitHub Pages + GAS • v3.1 Secured</span>
         <button type="button" class="link-btn" onclick="toggleApiConfigBox()">⚙️ Atur Server GAS</button>
       </div>
     </div>
@@ -1709,7 +1764,7 @@
     <!-- SIDEBAR KONTAK -->
     <aside class="sidebar">
       <div class="header">
-        <div class="user-info profile-trigger" onclick="openProfileModal()" title="Klik untuk ganti foto & nama profil">
+        <div class="user-info profile-trigger" onclick="openProfileModal()" title="Klik untuk ganti foto, nama & password">
           <div class="avatar" id="myAvatar"></div>
           <div class="profile-text">
             <div class="profile-name" id="myName"></div>
@@ -1717,6 +1772,7 @@
           </div>
         </div>
         <div class="header-actions">
+          <button class="icon-btn" onclick="openE2eeModal()" id="e2eeBtn" title="Enkripsi Chat (E2EE)"></button>
           <button class="icon-btn" onclick="handleWindowsNotifClick()" id="winNotifBtn" title="Notifikasi Windows"></button>
           <button class="icon-btn" onclick="toggleSound()" id="soundBtn" title="Notifikasi Suara"></button>
           <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Ubah Tema Gelap/Terang"></button>
@@ -1894,10 +1950,55 @@
           <label for="profileDisplayNameInput">Nama Tampilan</label>
           <input type="text" id="profileDisplayNameInput" maxlength="40" placeholder="Nama Anda" oninput="updateProfileModalPreview()">
         </div>
+
+        <!-- Bagian Ganti Password -->
+        <div class="security-divider">
+          <div class="security-section-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Ganti Password (Opsional)
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <input type="password" id="oldPasswordInput" placeholder="Password saat ini" autocomplete="current-password">
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <input type="password" id="newPasswordInput" placeholder="Password baru (min. 6 karakter)" autocomplete="new-password">
+          </div>
+          <button type="button" class="btn-small accent" id="btnChangePass" style="width:100%; padding:9px;" onclick="handleChangePassword()">Perbarui Password</button>
+        </div>
       </div>
       <div class="profile-modal-footer">
         <button type="button" class="btn-ghost" onclick="closeProfileModal()">Batal</button>
-        <button type="button" class="btn-primary" id="btnSaveProfile" style="width:auto; padding:9px 22px; margin-top:0; border-radius:999px;" onclick="saveProfileChanges()">Simpan</button>
+        <button type="button" class="btn-primary" id="btnSaveProfile" style="width:auto; padding:9px 22px; margin-top:0; border-radius:999px;" onclick="saveProfileChanges()">Simpan Profil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL KUNCI ENKRIPSI E2EE (AES-256-GCM) ================= -->
+  <div id="e2eeModal" class="overlay hidden" onclick="if(event.target===this) closeE2eeModal()">
+    <div class="profile-modal-card">
+      <div class="profile-modal-header">
+        <span>Enkripsi Chat (E2EE)</span>
+        <button class="icon-btn" onclick="closeE2eeModal()" style="width:34px;height:34px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="profile-modal-body">
+        <p style="font-size:13px; color:var(--text-secondary); line-height:1.55; margin-bottom:14px;">
+          Masukkan <strong>Frasa Sandi Bersama</strong> yang hanya diketahui Anda dan lawan bicara. Pesan teks akan dienkripsi (AES-256-GCM) di browser sebelum dikirim, sehingga di Google Sheets hanya tersimpan teks acak.
+        </p>
+        <div class="form-group" style="margin-bottom:8px;">
+          <label for="e2eePassphraseInput">Kunci Rahasia Chat</label>
+          <input type="password" id="e2eePassphraseInput" placeholder="Masukkan kunci rahasia (min. 4 karakter)">
+        </div>
+        <label class="checkbox-row">
+          <input type="checkbox" id="e2eeRememberCheck">
+          <span>Ingat kunci di perangkat ini (tersimpan lokal di browser)</span>
+        </label>
+        <div id="e2eeStatusNote" style="font-size:12px; color:var(--text-secondary); margin-top:12px;"></div>
+      </div>
+      <div class="profile-modal-footer">
+        <button type="button" class="btn-ghost" id="btnDisableE2ee" onclick="clearE2eePassphrase()">Matikan E2EE</button>
+        <button type="button" class="btn-primary" style="width:auto; padding:9px 20px; margin-top:0; border-radius:999px;" onclick="saveE2eePassphrase()">Aktifkan Kunci</button>
       </div>
     </div>
   </div>
@@ -1976,6 +2077,8 @@
   const ICONS = {
     sun: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
     moon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+    lock: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+    unlock: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`,
     desktop: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
     bellOn: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
     bellOff: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.89 17.89 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`,
@@ -2031,6 +2134,8 @@
         const r = google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
         switch (action) {
           case 'loginUser': r.loginUser(params.username, params.password); break;
+          case 'logoutUser': r.logoutUser(params.username, params.token); break;
+          case 'changePassword': r.changePassword(params.username, params.token, params.oldPassword, params.newPassword); break;
           case 'syncData': r.syncData(params.username, params.token, params.activePartner); break;
           case 'sendMessage': r.sendMessage(params.username, params.token, params.receiver, params.type, params.content, params.mimeType); break;
           case 'getMedia': r.getMedia(params.username, params.token, params.fileId); break;
@@ -2140,6 +2245,12 @@
   let knownMsgSignatures = {};
   let titleBlinkTimer = null;
 
+  // Enkripsi End-to-End (E2EE AES-256-GCM Sisi Klien)
+  const E2EE_PREFIX = 'ENC1:';
+  let e2eePassphrase = '';
+  let e2eeCryptoKey = null;
+  let decryptedCache = {};
+
   // Voice Note Recording
   let mediaRecorder = null;
   let audioChunks = [];
@@ -2170,6 +2281,17 @@
       winNotifEnabled = safeGet('wa_win_notif') !== 'off';
       updateSoundBtnUI();
       updateWinNotifUI();
+
+      // Muat kunci E2EE jika sebelumnya diaktifkan di sesi/browser ini
+      const savedE2ee = (function() {
+        try { return sessionStorage.getItem('wa_e2ee_key') || safeGet('wa_e2ee_key') || ''; }
+        catch (e) { return safeGet('wa_e2ee_key') || ''; }
+      })();
+      if (savedE2ee) {
+        initE2eeFromPassphrase(savedE2ee);
+      } else {
+        updateE2eeUI();
+      }
 
       // Jika belum ada URL GAS dan tidak berjalan di dalam GAS, tampilkan kotak input URL otomatis
       if (!getApiUrl() && !isInsideGasIframe()) {
@@ -2271,6 +2393,183 @@
   function toggleTheme() {
     const cur = document.documentElement.getAttribute('data-theme');
     applyTheme(cur === 'dark' ? 'light' : 'dark');
+  }
+
+  // ================= ENKRIPSI END-TO-END (AES-256-GCM) =================
+  function isCryptoSupported() {
+    return Boolean(window.crypto && window.crypto.subtle && window.TextEncoder);
+  }
+
+  async function deriveE2eeKey(passphrase) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw', enc.encode(passphrase), { name: 'PBKDF2' }, false, ['deriveKey']
+    );
+    return crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: enc.encode('WA_PRIVATE_CHAT_E2EE_SALT_V1'),
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  function bytesToBase64(bytes) {
+    let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+
+  function base64ToBytes(b64) {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
+  async function encryptMessageText(plainText) {
+    if (!e2eeCryptoKey || !isCryptoSupported()) return plainText;
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encoded = new TextEncoder().encode(plainText);
+    const cipherBuf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, e2eeCryptoKey, encoded);
+    return E2EE_PREFIX + bytesToBase64(iv) + ':' + bytesToBase64(new Uint8Array(cipherBuf));
+  }
+
+  async function decryptMessageText(rawText) {
+    if (!rawText || !rawText.startsWith(E2EE_PREFIX)) return rawText;
+    if (decryptedCache[rawText] !== undefined) return decryptedCache[rawText];
+    if (!e2eeCryptoKey || !isCryptoSupported()) return '🔒 Pesan terenkripsi (Masukkan kunci E2EE)';
+
+    try {
+      const body = rawText.slice(E2EE_PREFIX.length);
+      const parts = body.split(':');
+      if (parts.length !== 2) return '🔒 Format enkripsi tidak dikenali';
+      const iv = base64ToBytes(parts[0]);
+      const data = base64ToBytes(parts[1]);
+      const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, e2eeCryptoKey, data);
+      const decoded = new TextDecoder().decode(plainBuf);
+      decryptedCache[rawText] = decoded;
+      return decoded;
+    } catch (e) {
+      return '🔒 Kunci E2EE tidak cocok';
+    }
+  }
+
+  async function initE2eeFromPassphrase(pass) {
+    if (!pass || !isCryptoSupported()) {
+      e2eePassphrase = '';
+      e2eeCryptoKey = null;
+      decryptedCache = {};
+      updateE2eeUI();
+      return;
+    }
+    try {
+      e2eePassphrase = pass;
+      e2eeCryptoKey = await deriveE2eeKey(pass);
+      decryptedCache = {};
+      updateE2eeUI();
+    } catch (e) {
+      e2eePassphrase = '';
+      e2eeCryptoKey = null;
+      updateE2eeUI();
+    }
+  }
+
+  function updateE2eeUI() {
+    const btn = document.getElementById('e2eeBtn');
+    if (!btn) return;
+    const active = Boolean(e2eeCryptoKey);
+    btn.innerHTML = active ? ICONS.lock : ICONS.unlock;
+    btn.classList.toggle('active-state', active);
+    btn.title = active ? 'Enkripsi Chat E2EE Aktif (Klik untuk atur)' : 'Enkripsi Chat E2EE Nonaktif (Klik untuk aktifkan)';
+  }
+
+  function openE2eeModal() {
+    document.getElementById('e2eePassphraseInput').value = e2eePassphrase || '';
+    document.getElementById('e2eeRememberCheck').checked = Boolean(safeGet('wa_e2ee_key'));
+    const note = document.getElementById('e2eeStatusNote');
+    note.textContent = e2eeCryptoKey
+      ? 'Status saat ini: 🔒 Enkripsi E2EE Aktif.'
+      : 'Status saat ini: Nonaktif (pesan teks dikirim standar).';
+    document.getElementById('btnDisableE2ee').classList.toggle('hidden', !e2eeCryptoKey);
+    document.getElementById('e2eeModal').classList.remove('hidden');
+  }
+
+  function closeE2eeModal() {
+    document.getElementById('e2eeModal').classList.add('hidden');
+  }
+
+  async function saveE2eePassphrase() {
+    if (!isCryptoSupported()) {
+      showSystemToast('Browser ini tidak mendukung Web Crypto API (HTTPS diperlukan).', 'error');
+      return;
+    }
+    const pass = document.getElementById('e2eePassphraseInput').value.trim();
+    const remember = document.getElementById('e2eeRememberCheck').checked;
+    if (pass.length < 4) {
+      showSystemToast('Kunci rahasia minimal 4 karakter.', 'error');
+      return;
+    }
+
+    await initE2eeFromPassphrase(pass);
+    try { sessionStorage.setItem('wa_e2ee_key', pass); } catch (e) {}
+    if (remember) safeSet('wa_e2ee_key', pass);
+    else safeRemove('wa_e2ee_key');
+
+    closeE2eeModal();
+    showSystemToast('Enkripsi E2EE diaktifkan! Pesan baru kini terenkripsi.', 'info');
+    // Render ulang chat yang sedang terbuka agar pesan terenkripsi langsung terbaca
+    if (activePartner) {
+      renderedMsgIds.clear();
+      lastRenderedDateKey = null;
+      lastRenderedSender = null;
+      document.getElementById('messagesContainer').innerHTML = '';
+    }
+    runSync();
+  }
+
+  function clearE2eePassphrase() {
+    e2eePassphrase = '';
+    e2eeCryptoKey = null;
+    decryptedCache = {};
+    try { sessionStorage.removeItem('wa_e2ee_key'); } catch (e) {}
+    safeRemove('wa_e2ee_key');
+    updateE2eeUI();
+    closeE2eeModal();
+    showSystemToast('Enkripsi E2EE dimatikan.', 'info');
+    if (activePartner) {
+      renderedMsgIds.clear();
+      lastRenderedDateKey = null;
+      lastRenderedSender = null;
+      document.getElementById('messagesContainer').innerHTML = '';
+    }
+    runSync();
+  }
+
+  async function prepareDecryptedCache(contactList, msgList) {
+    const tasks = [];
+    (contactList || []).forEach(c => {
+      if (c.lastMsg && c.lastMsg.text && c.lastMsg.text.startsWith(E2EE_PREFIX)) {
+        tasks.push(decryptMessageText(c.lastMsg.text));
+      }
+    });
+    (msgList || []).forEach(m => {
+      if (m.type === 'text' && m.content && m.content.startsWith(E2EE_PREFIX)) {
+        tasks.push(decryptMessageText(m.content));
+      }
+    });
+    if (tasks.length > 0) await Promise.all(tasks);
+  }
+
+  function getDisplayText(raw) {
+    if (!raw || !raw.startsWith(E2EE_PREFIX)) return raw;
+    if (decryptedCache[raw] !== undefined) return decryptedCache[raw];
+    return e2eeCryptoKey ? '🔒 Memuat pesan...' : '🔒 Pesan terenkripsi';
   }
 
   // ================= NOTIFIKASI WINDOWS & SUARA =================
@@ -2444,9 +2743,12 @@
     toast.className = 'toast-item ' + (variant === 'error' ? 'toast-error' : 'toast-info');
     toast.onclick = () => toast.remove();
     toast.innerHTML = `
+      <div class="avatar" style="width:38px; height:38px; font-size:15px; background:${sanitizeColor(contact.avatarColor)}">
+        ${renderAvatarInner(contact.displayName, contact.avatar, false)}
+      </div>
       <div class="toast-body">
-        <div class="toast-title">${variant === 'error' ? 'Perhatian' : 'Info'}</div>
-        <div class="toast-msg" style="white-space:normal;">${escapeHtml(message)}</div>
+        <div class="toast-title">${escapeHtml(contact.displayName)}</div>
+        <div class="toast-msg">${escapeHtml(contact.lastMsg ? getDisplayText(contact.lastMsg.text) : 'Pesan baru')}</div>
       </div>
     `;
     container.appendChild(toast);
@@ -2528,6 +2830,11 @@
     stopTitleBlink();
     currentUser = null;
     activePartner = null;
+    e2eePassphrase = '';
+    e2eeCryptoKey = null;
+    decryptedCache = {};
+    try { sessionStorage.removeItem('wa_e2ee_key'); } catch (e) {}
+    safeRemove('wa_e2ee_key');
     safeRemove('wa_user');
     document.getElementById('appScreen').classList.add('hidden');
     document.getElementById('authScreen').classList.remove('hidden');
@@ -2573,102 +2880,65 @@
     if (!currentUser) return;
     pendingProfileAvatar = null;
     document.getElementById('profileDisplayNameInput').value = currentUser.displayName || '';
+    document.getElementById('oldPasswordInput').value = '';
+    document.getElementById('newPasswordInput').value = '';
     updateProfileModalPreview();
     document.getElementById('profileModal').classList.remove('hidden');
   }
 
-  function closeProfileModal() {
-    pendingProfileAvatar = null;
-    document.getElementById('profileModal').classList.add('hidden');
-  }
-
-  function updateProfileModalPreview() {
-    const previewEl = document.getElementById('profilePreviewAvatar');
-    const removeBtn = document.getElementById('btnRemoveProfilePhoto');
-    const effectiveAvatar = pendingProfileAvatar !== null ? pendingProfileAvatar : (currentUser.avatar || '');
-    const displayName = document.getElementById('profileDisplayNameInput').value.trim() || currentUser.displayName;
-
-    previewEl.style.background = currentUser.avatarColor || '#00a884';
-    previewEl.innerHTML = renderAvatarInner(displayName, effectiveAvatar, false);
-    removeBtn.classList.toggle('hidden', !effectiveAvatar);
-  }
-
-  function handleProfilePhotoSelected(e) {
-    const file = e.target.files[0];
-    e.target.value = '';
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      const img = new Image();
-      img.onload = function() {
-        const side = Math.min(img.width, img.height);
-        const sx = Math.floor((img.width - side) / 2);
-        const sy = Math.floor((img.height - side) / 2);
-
-        const encodeSquare = (size, quality) => {
-          const canvas = document.createElement('canvas');
-          canvas.width = size;
-          canvas.height = size;
-          canvas.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, size, size);
-          return canvas.toDataURL('image/jpeg', quality);
-        };
-
-        let result = encodeSquare(200, 0.8);
-        if (result.length > 35000) result = encodeSquare(160, 0.68);
-        pendingProfileAvatar = result;
-        updateProfileModalPreview();
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function removeProfilePhotoPreview() {
-    pendingProfileAvatar = '';
-    updateProfileModalPreview();
-  }
-
-  async function saveProfileChanges() {
+  async function handleChangePassword() {
     if (!currentUser) return;
-    const newName = document.getElementById('profileDisplayNameInput').value.trim();
-    if (!newName) {
-      showSystemToast('Nama tampilan tidak boleh kosong.', 'error');
+    const oldPass = document.getElementById('oldPasswordInput').value;
+    const newPass = document.getElementById('newPasswordInput').value.trim();
+    if (!oldPass || !newPass) {
+      showSystemToast('Isi password saat ini dan password baru.', 'error');
+      return;
+    }
+    if (newPass.length < 6) {
+      showSystemToast('Password baru minimal 6 karakter.', 'error');
       return;
     }
 
-    const btn = document.getElementById('btnSaveProfile');
+    const btn = document.getElementById('btnChangePass');
     btn.disabled = true;
-    btn.textContent = 'Menyimpan...';
+    btn.textContent = 'Memperbarui...';
 
     try {
-      const res = await callApi('updateProfile', {
+      const res = await callApi('changePassword', {
         username: currentUser.username,
         token: currentUser.token,
-        displayName: newName,
-        avatarData: pendingProfileAvatar
+        oldPassword: oldPass,
+        newPassword: newPass
       });
       if (res && res.success) {
-        currentUser = res.user;
-        safeSet('wa_user', JSON.stringify(currentUser));
-        renderMyProfile();
-        closeProfileModal();
-        showSystemToast('Profil berhasil diperbarui.', 'info');
+        if (res.token) {
+          currentUser.token = res.token;
+          safeSet('wa_user', JSON.stringify(currentUser));
+        }
+        document.getElementById('oldPasswordInput').value = '';
+        document.getElementById('newPasswordInput').value = '';
+        showSystemToast('Password berhasil diganti!', 'info');
       } else {
-        showSystemToast((res && res.message) || 'Gagal menyimpan profil.', 'error');
+        showSystemToast((res && res.message) || 'Gagal mengganti password.', 'error');
       }
     } catch (err) {
-      showSystemToast('Koneksi bermasalah saat menyimpan profil.', 'error');
+      showSystemToast('Koneksi bermasalah saat mengganti password.', 'error');
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Simpan';
+      btn.textContent = 'Perbarui Password';
     }
   }
 
   function openLogoutModal() { document.getElementById('logoutModal').classList.remove('hidden'); }
   function closeLogoutModal() { document.getElementById('logoutModal').classList.add('hidden'); }
-  function confirmLogout() {
+  async function confirmLogout() {
     closeLogoutModal();
+    if (currentUser) {
+      callApi('logoutUser', {
+        username: currentUser.username,
+        token: currentUser.token
+      }).catch(() => {});
+    }
     showLoginScreen('');
   }
 
@@ -2698,11 +2968,14 @@
       }
 
       contacts = res.contacts || [];
+      const activeMsgs = res.messages || [];
+      await prepareDecryptedCache(contacts, activeMsgs);
+
       checkIncomingNotifications(contacts);
       renderContacts();
       if (activePartner) {
         updateActivePartnerHeader();
-        renderMessages(res.messages || []);
+        renderMessages(activeMsgs);
       }
     } catch (err) {
       // Abaikan kegagalan polling sementara agar tidak mengganggu chat
@@ -2728,7 +3001,7 @@
 
         if (isBackground || isOtherChat) {
           soundToPlay = 'incoming';
-          sendWindowsNotification(c.displayName, c.lastMsg.text, c.username, c.avatar);
+          sendWindowsNotification(c.displayName, getDisplayText(c.lastMsg.text), c.username, c.avatar);
           if (isBackground) startTitleBlink('Pesan dari ' + c.displayName);
           if (isOtherChat) showToastNotification(c);
         } else {
@@ -2793,12 +3066,12 @@
       let previewHtml = `<span class="preview-text-inner">@${escapeHtml(c.username)}</span>`;
       if (c.lastMsg) {
         const tick = c.lastMsg.fromMe ? ICONS.doubleTick(c.lastMsg.isRead, '') : '';
-        previewHtml = `${tick}<span class="preview-text-inner">${escapeHtml(c.lastMsg.text)}</span>`;
+        previewHtml = `${tick}<span class="preview-text-inner">${escapeHtml(getDisplayText(c.lastMsg.text))}</span>`;
       }
 
       return `
         <div class="contact-item ${activeCls} ${unreadCls}" onclick="openChat('${escapeHtml(c.username)}')">
-          <div class="avatar" style="background:${c.avatarColor}">
+          <div class="avatar" style="background:${sanitizeColor(c.avatarColor)}">
             ${renderAvatarInner(c.displayName, c.avatar, c.isOnline)}
           </div>
           <div class="contact-meta">
@@ -2914,7 +3187,12 @@
 
       let bodyHtml = '';
       if (msg.type === 'text') {
-        bodyHtml = `<div class="msg-text">${linkifyText(escapeHtml(msg.content))}</div>`;
+        const isEnc = Boolean(msg.content && msg.content.startsWith(E2EE_PREFIX));
+        const shownText = getDisplayText(msg.content);
+        bodyHtml = `<div class="msg-text">${linkifyText(escapeHtml(shownText))}</div>`;
+        if (isEnc) {
+          msg._isEncrypted = true;
+        }
       } else if (msg.type === 'image') {
         bodyHtml = `<div id="media_${msg.id}" class="media-placeholder"><div class="spinner"></div> Memuat foto...</div>`;
       } else if (msg.type === 'audio') {
@@ -2922,11 +3200,15 @@
       }
 
       const tickHtml = isOut ? ICONS.doubleTick(msg.isRead, `id="tick_${msg.id}"`) : '';
+      const lockIconHtml = msg._isEncrypted
+        ? `<span class="msg-enc-tag" title="Pesan terenkripsi E2EE"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>`
+        : '';
 
       row.innerHTML = `
         <div class="bubble">
           ${bodyHtml}
           <div class="msg-meta">
+            ${lockIconHtml}
             <span>${formatTime(msg.timestamp)}</span>
             ${tickHtml}
           </div>
@@ -2983,7 +3265,19 @@
       const slot = document.getElementById('media_' + msgId);
       if (!slot) return;
       if (type === 'image') {
-        slot.outerHTML = `<div class="msg-img-wrap"><img src="${dataUrl}" class="msg-img" alt="Foto chat" onclick="previewImage('${dataUrl}')"></div>`;
+        if (!String(dataUrl || '').startsWith('data:image/')) {
+          slot.textContent = 'Format gambar tidak valid';
+          return;
+        }
+        const wrap = document.createElement('div');
+        wrap.className = 'msg-img-wrap';
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.className = 'msg-img';
+        img.alt = 'Foto chat';
+        img.addEventListener('click', () => previewImage(dataUrl));
+        wrap.appendChild(img);
+        slot.replaceWith(wrap);
       } else {
         slot.outerHTML = buildCustomVnPlayerHtml(msgId);
         initCustomVnPlayer(msgId, dataUrl);
@@ -3141,12 +3435,17 @@
     toggleSendMicBtn();
 
     try {
+      const payloadContent = e2eeCryptoKey ? await encryptMessageText(text) : text;
+      if (e2eeCryptoKey && payloadContent.startsWith(E2EE_PREFIX)) {
+        decryptedCache[payloadContent] = text;
+      }
+
       const res = await callApi('sendMessage', {
         username: currentUser.username,
         token: currentUser.token,
         receiver: activePartner,
         type: 'text',
-        content: text,
+        content: payloadContent,
         mimeType: ''
       });
       if (res && res.success) {
@@ -3329,12 +3628,30 @@
 
       peer.on('call', (incomingCall) => {
         if (activeCall) { incomingCall.close(); return; }
+
+        // Verifikasi ketat: hanya terima panggilan dari kontak terdaftar (cocokkan PeerID)
+        const verifiedCaller = contacts.find(c => c.peerId && c.peerId === incomingCall.peer);
+        if (!verifiedCaller) {
+          incomingCall.close();
+          return;
+        }
+
         stopActiveVn();
         activeCall = incomingCall;
-        const meta = incomingCall.metadata || { callerName: 'Panggilan Masuk', callerColor: '#00a884', callerAvatar: '' };
-        showCallModal(meta.callerName, meta.callerColor, 'Panggilan suara masuk...', 'incoming', meta.callerAvatar);
+        showCallModal(
+          verifiedCaller.displayName,
+          sanitizeColor(verifiedCaller.avatarColor),
+          'Panggilan suara masuk...',
+          'incoming',
+          verifiedCaller.avatar || ''
+        );
         startRingtone();
-        sendWindowsNotification('📞 Panggilan Suara Masuk', meta.callerName + ' sedang menelepon Anda...', null, meta.callerAvatar);
+        sendWindowsNotification(
+          '📞 Panggilan Suara Masuk',
+          verifiedCaller.displayName + ' sedang menelepon Anda...',
+          verifiedCaller.username,
+          verifiedCaller.avatar || ''
+        );
         incomingCall.on('close', () => endCallCleanup());
       });
     } catch (e) {}
@@ -3481,6 +3798,11 @@
   function stopRingtone() { clearInterval(ringtoneInterval); }
 
   // ================= UTILITAS FORMAT =================
+  function sanitizeColor(color) {
+    const c = String(color || '').trim();
+    return /^#[0-9a-fA-F]{3,8}$/.test(c) ? c : '#00a884';
+  }
+
   function escapeHtml(str) {
     return String(str || '').replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
   }
@@ -3544,3 +3866,4 @@
 </script>
 </body>
 </html>
+```
