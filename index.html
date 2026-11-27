@@ -670,7 +670,7 @@
       <form onsubmit="handleLogin(event)">
         <div class="form-group">
           <label for="inputUsername">Username</label>
-          <input type="text" id="inputUsername" placeholder="Contoh: mv atau jtk" required autocomplete="username">
+          <input type="text" id="inputUsername" placeholder="Masukkan username dari Sheet Users" required autocomplete="username">
         </div>
         <div class="form-group">
           <label for="inputPassword">Password</label>
@@ -693,7 +693,7 @@
       </div>
 
       <div class="auth-footer-note">
-        <span>GitHub + GAS Secured • v4.1</span>
+        <span>GitHub + GAS Secured • v4.3</span>
         <div style="display:flex; gap:10px; align-items:center;">
           <button type="button" class="link-btn" onclick="toggleServerConfig()">Atur Server</button>
           <button type="button" class="link-btn" onclick="resetLocalSession()">Reset Sesi</button>
@@ -923,8 +923,123 @@
           <input type="checkbox" id="e2eeRememberCheck">
           <span>Ingat kunci di perangkat ini</span>
         </label>
+        <div id="e2eeStatusNote" style="margin-top:12px; font-size:12.5px; color:var(--text-secondary);"></div>
+      </div>
+      <div class="profile-modal-footer">
+        <button type="button" class="btn-pill-soft danger hidden" id="btnDisableE2ee" style="margin-right:auto;" onclick="clearE2eePassphrase()">Matikan</button>
+        <button type="button" class="btn-ghost" onclick="closeE2eeModal()">Batal</button>
+        <button type="button" class="btn-primary" style="width:auto; padding:9px 20px; margin-top:0; border-radius:999px;" onclick="saveE2eePassphrase()">Aktifkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL KONFIRMASI LOGOUT -->
+  <div id="logoutModal" class="overlay hidden" onclick="if(event.target===this) closeLogoutModal()">
+    <div class="dialog-card">
+      <div class="dialog-title">Keluar dari Akun?</div>
+      <div class="dialog-desc">Sesi Anda akan dicabut dari server dan Anda perlu masuk kembali untuk membaca pesan.</div>
+      <div class="dialog-actions">
+        <button type="button" class="btn-ghost" onclick="closeLogoutModal()">Batal</button>
+        <button type="button" class="btn-danger" onclick="confirmLogout()">Keluar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PRATINJAU KIRIM FOTO -->
+  <div id="imgSendModal" class="overlay hidden" onclick="if(event.target===this) cancelPendingImage()">
+    <div class="img-send-card">
+      <div class="img-send-header">
+        <span>Kirim Foto</span>
+        <button class="icon-btn" onclick="cancelPendingImage()" style="width:34px;height:34px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="img-send-body">
+        <img id="pendingImgPreview" src="" alt="Pratinjau foto">
+      </div>
+      <div class="img-send-footer">
+        <button type="button" class="btn-ghost" onclick="cancelPendingImage()">Batal</button>
+        <button type="button" class="btn-primary" style="width:auto; padding:9px 22px; margin-top:0; border-radius:999px;" onclick="confirmSendImage()">Kirim Foto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PANGGILAN SUARA -->
+  <div id="callOverlay" class="overlay hidden">
+    <div class="call-box">
+      <div class="call-avatar-wrap">
+        <div class="call-avatar-ring" id="callAvatarRing"></div>
+        <div class="avatar call-avatar" id="callAvatar"></div>
+      </div>
+      <div class="call-name" id="callName">Pengguna</div>
+      <div class="call-status" id="callStatus">Memanggil...</div>
+      <div class="call-controls" id="callControls"></div>
+    </div>
+  </div>
+
+  <!-- PREVIEW GAMBAR FULLSCREEN -->
+  <div id="imgPreviewOverlay" class="overlay hidden" onclick="this.classList.add('hidden')">
+    <button type="button" class="img-close-btn" onclick="document.getElementById('imgPreviewOverlay').classList.add('hidden')" title="Tutup">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <img id="imgPreviewSrc" src="" alt="Pratinjau penuh" onclick="event.stopPropagation()">
+  </div>
+
+  <audio id="remoteAudio" autoplay></audio>
+
+<script>
+  // ================= PENANGKAP ERROR GLOBAL (ANTI BLANK) =================
+  window.onerror = function(msg, src, line) {
+    const banner = document.getElementById('errorBanner');
+    const txt = document.getElementById('errorBannerText');
+    if (banner && txt) {
+      txt.textContent = 'Terjadi kesalahan JS (baris ' + line + '): ' + msg;
+      banner.classList.remove('hidden');
+    }
+  };
+
+  // ================= SAFE STORAGE (AMAN DI SEMUA BROWSER) =================
+  const memStore = {};
+  function safeGet(key) {
+    try { return window.localStorage.getItem(key); } catch (e) { return memStore[key] || null; }
+  }
+  function safeSet(key, val) {
+    memStore[key] = val;
+    try { window.localStorage.setItem(key, val); } catch (e) {}
+  }
+  function safeRemove(key) {
+    delete memStore[key];
+    try { window.localStorage.removeItem(key); } catch (e) {}
+  }
+
+  // ================= IKON SVG & EMOJI =================
+  const QUICK_EMOJIS = [
+    '😀','😂','🥰','😍','😘','😊','😁','😅','🤣','😉','😇','🙂',
+    '🤔','😎','🥳','😢','😭','😡','😱','😴','🤗','😜','🤭','🤐',
+    '👍','👎','🙏','👏','🤝','✌️','👌','❤️','🧡','💛','💚','💙',
+    '🔥','✨','💯','🎉','💐','🌹','☕','🍕','🚀','⭐','✅','❌'
+  ];
+
+  const ICONS = {
+    eye: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+    eyeOff: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+    sun: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+    moon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+    bellOn: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+    bellOff: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.89 17.89 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+    desktop: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+    lock: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+    unlock: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>',
+    play: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-left:2px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+    pause: '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>',
+    phone: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+    hangup: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+    micOff: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
+    doubleTick: (isRead, attrStr) => `<svg ${attrStr || ''} class="tick-svg ${isRead ? 'read' : ''}" viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.071 0.653a.457.457 0 0 0-.304-.102.493.493 0 0 0-.381.178l-6.19 7.636-2.405-2.272a.463.463 0 0 0-.336-.146.47.47 0 0 0-.343.146l-.311.31a.445.445 0 0 0-.14.337c0 .136.047.25.14.343l2.996 2.996a.724.724 0 0 0 .501.203.697.697 0 0 0 .546-.266l6.646-8.417a.497.497 0 0 0 .108-.299.441.441 0 0 0-.19-.374l-.637-.273zm3.558 0a.457.457 0 0 0-.304-.102.493.493 0 0 0-.381.178l-6.19 7.636-1.2-1.134-.64.79 1.547 1.547a.724.724 0 0 0 .501.203.697.697 0 0 0 .546-.266l6.646-8.417a.497.497 0 0 0 .108-.299.441.441 0 0 0-.19-.374l-.443-.262z" fill="currentColor"/></svg>`
+  };
+
   // ================= KONFIGURASI API GOOGLE APPS SCRIPT =================
-  const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzonaa26WG1e7AKhDFA9d8GHR03lhr-FOzXORq8veAM2Q5roDAHDCkD_1sqbMZAER1K/exec';
+  const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbw4VhYhHRg7hk9pdouGPwldwYT6z2zicm7Soq-cIyGPfCeIdmy0Av0QoJqdoxshMoz1/exec';
 
   function getApiUrl() {
     const custom = (safeGet('wa_api_url') || '').trim();
@@ -964,7 +1079,10 @@
       const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
       const data = await resp.json();
       if (data && data.success) {
-        showSystemToast('Terhubung! ' + (data.message || 'Backend GAS aktif.'), 'info');
+        const countInfo = (typeof data.usersCount === 'number')
+          ? ` (${data.usersCount} akun terbaca di Sheet Users)`
+          : '';
+        showSystemToast('Terhubung! ' + (data.version || '') + countInfo, 'info');
       } else {
         showSystemToast((data && data.message) || 'Backend merespons tetapi tidak valid.', 'error');
       }
@@ -1050,7 +1168,7 @@
     try {
       return JSON.parse(text);
     } catch (e) {
-      throw new Error('Respons server bukan JSON valid. Pastikan deploy Web App GAS dengan akses "Anyone" dan sudah memakai Code.gs v4.1.');
+      throw new Error('Respons server bukan JSON valid. Pastikan deploy Web App GAS dengan akses "Anyone" dan memakai Code.gs v4.3.');
     }
   }
 
