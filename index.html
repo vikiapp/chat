@@ -683,8 +683,8 @@
       </form>
 
       <div id="serverConfigBox" class="server-config-box hidden">
-        <label for="apiUrlInput">URL Web App Google Apps Script (/exec)</label>
-        <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+        <label for="apiUrlInput">URL Web App Google Apps Script (/)</label>
+        <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../">
         <div class="server-config-actions">
           <button type="button" class="btn-small accent" onclick="saveServerUrl()">Simpan URL</button>
           <button type="button" class="btn-small" id="btnTestConn" onclick="testServerConnection()">Tes Koneksi</button>
@@ -1039,7 +1039,7 @@
   };
 
   // ================= KONFIGURASI API GOOGLE APPS SCRIPT =================
-  const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbw4VhYhHRg7hk9pdouGPwldwYT6z2zicm7Soq-cIyGPfCeIdmy0Av0QoJqdoxshMoz1/exec';
+  const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbxS0BnCQDAJ7FF53LE9-b_zdn0hH9KOoribbgDukBXafiCJhikcvWVg-A40nj9s-tD4/exec';
 
   function getApiUrl() {
     const custom = (safeGet('wa_api_url') || '').trim();
