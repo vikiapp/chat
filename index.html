@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" id="metaThemeColor" content="#008069">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WA Private">
   <title>WA Private Chat</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- PeerJS untuk panggilan suara WebRTC -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2300a884'/%3E%3Cpath fill='%23ffffff' d='M48 16H16a4 4 0 0 0-4 4v30l8-8h28a4 4 0 0 0 4-4V20a4 4 0 0 0-4-4z'/%3E%3C/svg%3E">
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     :root {
@@ -1173,6 +1175,31 @@
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
     }
 
+    /* MODAL PANDUAN INSTALL PWA */
+    .install-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .install-step-box {
+      background: var(--bg-header);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.48;
+    }
+    .install-step-box strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+      font-size: 13.5px;
+    }
+    .install-step-box span {
+      color: var(--text-secondary);
+    }
+
     /* RESPONSIF MOBILE */
     @media (max-width: 768px) {
       .sidebar { width: 100%; min-width: 0; }
@@ -1237,8 +1264,9 @@
       </div>
 
       <div class="auth-footer">
-        <span>GitHub + GAS Secured • v4.5</span>
-        <div style="display:flex; gap:10px;">
+        <span>GitHub + GAS Secured • v4.6 PWA</span>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="link-btn" id="btnInstallAuth" onclick="handleInstallAppClick()">Install App</button>
           <button type="button" class="link-btn" onclick="toggleServerSettings()">Atur Server</button>
           <button type="button" class="link-btn" onclick="resetLocalSession()">Reset Sesi</button>
         </div>
@@ -1261,6 +1289,9 @@
           </div>
         </div>
         <div class="header-actions">
+          <button type="button" class="icon-btn" id="btnInstallApp" onclick="handleInstallAppClick()" title="Install sebagai Aplikasi">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
           <button type="button" class="icon-btn" id="btnE2ee" onclick="openE2eeModal()" title="Enkripsi Chat (E2EE)">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </button>
@@ -1542,6 +1573,33 @@
     <img id="imgPreviewSrc" src="" alt="Preview">
   </div>
 
+  <!-- MODAL INSTALL APLIKASI (PWA) -->
+  <div id="installAppModal" class="overlay hidden" onclick="if(event.target===this) closeInstallModal()">
+    <div class="modal-card">
+      <div class="modal-title">📲 Install WA Private Chat</div>
+      <div class="modal-desc">
+        Pasang aplikasi ini di Desktop Windows atau HP agar terbuka layar penuh seperti aplikasi asli dengan ikon sendiri.
+      </div>
+      <div class="install-steps">
+        <div class="install-step-box">
+          <strong>💻 Windows / Laptop (Chrome & Edge)</strong>
+          <span>Klik ikon <b>Install</b> di ujung kanan kolom alamat URL, atau klik menu <b>⋮</b> &rarr; <b>Save and share / Apps</b> &rarr; <b>Install page as app</b>.</span>
+        </div>
+        <div class="install-step-box">
+          <strong>🤖 Android (Chrome)</strong>
+          <span>Klik menu titik tiga <b>⋮</b> di pojok kanan atas &rarr; pilih <b>Tambahkan ke layar utama (Add to Home screen)</b> &rarr; <b>Install</b>.</span>
+        </div>
+        <div class="install-step-box">
+          <strong>🍎 iPhone / iPad (Safari)</strong>
+          <span>Ketuk tombol <b>Share (Bagikan)</b> di bawah layar &rarr; pilih <b>Tambah ke Layar Utama (Add to Home Screen)</b> &rarr; <b>Tambah</b>.</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" style="width:auto; padding:9px 22px;" onclick="closeInstallModal()">Mengerti</button>
+      </div>
+    </div>
+  </div>
+
   <audio id="remoteAudio" autoplay></audio>
 
 <script>
@@ -1611,7 +1669,10 @@
   let titleBlinkTimer = null;
   const BASE_TITLE = 'WA Private Chat';
 
-  // Rekaman VN State
+  // PWA Install State
+  let deferredInstallPrompt = null;
+
+  // Voice Note State
   let mediaRecorder = null;
   let audioChunks = [];
   let recInterval = null;
@@ -1665,7 +1726,7 @@
       updateSoundButton();
       updateWinNotifUI();
       buildEmojiGrid();
-
+      initPwaSupport();
       document.getElementById('inputApiUrl').value = getApiUrl();
 
       // Muat kunci E2EE jika pernah diaktifkan
@@ -1712,6 +1773,10 @@
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     safeSet('wa_theme', theme);
+    const metaTheme = document.getElementById('metaThemeColor');
+    if (metaTheme) {
+      metaTheme.setAttribute('content', theme === 'dark' ? '#202c33' : '#008069');
+    }
     const btn = document.getElementById('btnTheme');
     if (!btn) return;
     btn.innerHTML = theme === 'dark'
@@ -3389,6 +3454,144 @@
     const m = String(Math.floor(sec / 60)).padStart(2, '0');
     const s = String(sec % 60).padStart(2, '0');
     return `${m}:${s}`;
+  }
+
+  // ================= DUKUNGAN INSTALL APLIKASI (PWA) =================
+  function isRunningStandalone() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      window.navigator.standalone === true;
+  }
+
+  function updateInstallButtonsVisibility() {
+    const installed = isRunningStandalone();
+    const btnHeader = document.getElementById('btnInstallApp');
+    const btnAuth = document.getElementById('btnInstallAuth');
+    if (btnHeader) {
+      btnHeader.classList.toggle('hidden', installed);
+      btnHeader.classList.toggle('active-state', Boolean(deferredInstallPrompt));
+      btnHeader.title = deferredInstallPrompt
+        ? 'Install WA Private Chat sekarang'
+        : 'Cara Install sebagai Aplikasi';
+    }
+    if (btnAuth) {
+      btnAuth.classList.toggle('hidden', installed);
+    }
+  }
+
+  /**
+   * Membuat ikon aplikasi PNG dinamis pada ukuran tertentu (192x192 / 512x512)
+   */
+  function createAppIconDataUrl(size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const scale = size / 512;
+
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#00a884';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(0, 0, 512, 512, 112);
+    } else {
+      ctx.rect(0, 0, 512, 512);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(110, 126, 292, 214, 42);
+    } else {
+      ctx.rect(110, 126, 292, 214);
+    }
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(156, 330);
+    ctx.lineTo(118, 396);
+    ctx.lineTo(222, 336);
+    ctx.closePath();
+    ctx.fill();
+
+    return canvas.toDataURL('image/png');
+  }
+
+  function initPwaSupport() {
+    try {
+      updateInstallButtonsVisibility();
+
+      const icon192 = createAppIconDataUrl(192);
+      const icon512 = createAppIconDataUrl(512);
+
+      // Pasang Apple Touch Icon untuk iOS Safari
+      const appleLink = document.createElement('link');
+      appleLink.rel = 'apple-touch-icon';
+      appleLink.href = icon192;
+      document.head.appendChild(appleLink);
+
+      // Pasang Web App Manifest agar browser mengenali aplikasi ini dapat di-install
+      const cleanStartUrl = window.location.href.split('#')[0];
+      const baseScope = cleanStartUrl.substring(0, cleanStartUrl.lastIndexOf('/') + 1);
+      const manifestObj = {
+        name: 'WA Private Chat',
+        short_name: 'WA Private',
+        description: 'Aplikasi chat pribadi bergaya WhatsApp',
+        start_url: cleanStartUrl,
+        scope: baseScope || './',
+        display: 'standalone',
+        background_color: '#0b141a',
+        theme_color: '#008069',
+        icons: [
+          { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+        ]
+      };
+
+      const manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      manifestLink.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
+      document.head.appendChild(manifestLink);
+
+      // Tangkap event install otomatis browser (Chrome / Edge / Android)
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        updateInstallButtonsVisibility();
+      });
+
+      window.addEventListener('appinstalled', () => {
+        deferredInstallPrompt = null;
+        updateInstallButtonsVisibility();
+        closeInstallModal();
+        showSystemToast('WA Private Chat berhasil di-install!', 'info');
+      });
+
+      // Daftarkan Service Worker opsional jika file sw.js ada di repo GitHub Pages
+      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
+    } catch (e) {}
+  }
+
+  async function handleInstallAppClick() {
+    if (deferredInstallPrompt) {
+      try {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          deferredInstallPrompt = null;
+          updateInstallButtonsVisibility();
+        }
+        return;
+      } catch (e) {}
+    }
+    document.getElementById('installAppModal').classList.remove('hidden');
+  }
+
+  function closeInstallModal() {
+    const modal = document.getElementById('installAppModal');
+    if (modal) modal.classList.add('hidden');
   }
 </script>
 </body>
